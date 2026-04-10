@@ -11,7 +11,10 @@ import {
   ArrowUpRight,
   Flame
 } from "lucide-react";
-import { useState, useEffect, useRef, ReactNode } from "react";
+import React, { useState, useEffect, useRef, ReactNode } from "react";
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { db, auth, googleProvider, signInWithPopup, handleFirestoreError, OperationType } from './firebase';
 
 // --- Constants ---
 
@@ -180,6 +183,12 @@ const Navbar = () => {
           className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
         >
           Book
+        </a>
+        <a 
+          href="#audit" 
+          className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
+        >
+          Audit
         </a>
         <a 
           href="mailto:ashypyi@gmail.com" 
@@ -355,6 +364,241 @@ const Booking = () => {
   );
 };
 
+const RevenueAudit = () => {
+  const [formData, setFormData] = useState({
+    practiceName: '',
+    location: '',
+    numProviders: '',
+    avgTicket: '',
+    activePatients: '1500',
+    ltv: '1200',
+    attritionRate: '30',
+    email: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const activePatients = parseFloat(formData.activePatients) || 0;
+  const ltv = parseFloat(formData.ltv) || 0;
+  const attritionRate = parseFloat(formData.attritionRate) || 0;
+  const recoverableLoss = activePatients * (attritionRate / 100) * ltv;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const auditData = {
+        ...formData,
+        numProviders: parseFloat(formData.numProviders) || 0,
+        avgTicket: parseFloat(formData.avgTicket) || 0,
+        activePatients: activePatients,
+        ltv: ltv,
+        attritionRate: attritionRate,
+        recoverableLoss: recoverableLoss,
+        createdAt: serverTimestamp()
+      };
+      await addDoc(collection(db, 'revenueAudits'), auditData);
+      setIsSubmitted(true);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'revenueAudits');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Section id="audit" className="bg-[#0F0F0F] border-t border-archive-white/5">
+      <div className="container mx-auto px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+            {/* Left Side: Copy & Form */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5 }}
+            >
+              <span className="text-[10px] font-sans tracking-[0.4em] text-archive-white/30 uppercase block mb-10">05 / The Audit</span>
+              <h2 className="text-5xl md:text-7xl font-serif italic tracking-tighter text-archive-white leading-tight mb-12">
+                Find the <span className="text-orange-500">${recoverableLoss.toLocaleString()}</span> <br />
+                you're losing in 30 seconds.
+              </h2>
+              <p className="text-xl font-serif italic text-archive-white/60 mb-16 leading-relaxed">
+                Most clinics leak 30% of their revenue through attrition. <br />
+                Our infrastructure plugs the holes.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-sans tracking-[0.2em] uppercase text-archive-white/40">Practice Name</label>
+                    <input 
+                      required
+                      name="practiceName"
+                      value={formData.practiceName}
+                      onChange={handleInputChange}
+                      className="w-full bg-transparent border-b border-archive-white/10 py-4 text-archive-white focus:border-orange-500 transition-colors outline-none font-serif italic text-lg" 
+                      placeholder="The Clinic Archive"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-sans tracking-[0.2em] uppercase text-archive-white/40">Location</label>
+                    <input 
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className="w-full bg-transparent border-b border-archive-white/10 py-4 text-archive-white focus:border-orange-500 transition-colors outline-none font-serif italic text-lg" 
+                      placeholder="Milan, IT"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-sans tracking-[0.2em] uppercase text-archive-white/40"># Providers</label>
+                    <input 
+                      type="number"
+                      name="numProviders"
+                      value={formData.numProviders}
+                      onChange={handleInputChange}
+                      className="w-full bg-transparent border-b border-archive-white/10 py-4 text-archive-white focus:border-orange-500 transition-colors outline-none font-serif italic text-lg" 
+                      placeholder="4"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-sans tracking-[0.2em] uppercase text-archive-white/40">Avg Ticket ($)</label>
+                    <input 
+                      type="number"
+                      name="avgTicket"
+                      value={formData.avgTicket}
+                      onChange={handleInputChange}
+                      className="w-full bg-transparent border-b border-archive-white/10 py-4 text-archive-white focus:border-orange-500 transition-colors outline-none font-serif italic text-lg" 
+                      placeholder="450"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-8">
+                  <label className="text-[10px] font-sans tracking-[0.2em] uppercase text-archive-white/40">Email for Detailed Audit</label>
+                  <input 
+                    required
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full bg-transparent border-b border-archive-white/10 py-4 text-archive-white focus:border-orange-500 transition-colors outline-none font-serif italic text-lg" 
+                    placeholder="director@clinic.com"
+                  />
+                </div>
+
+                <button 
+                  disabled={isSubmitting || isSubmitted}
+                  className="group relative inline-flex items-center gap-12 text-[11px] font-bold uppercase tracking-[0.6em] text-archive-white py-8 px-16 border border-archive-white/10 hover:bg-orange-600 hover:border-orange-600 transition-all duration-500 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Processing...' : isSubmitted ? 'Audit Sent' : 'Get Detailed Audit'}
+                  <ArrowRight size={16} className="group-hover:translate-x-4 transition-transform" />
+                </button>
+              </form>
+            </motion.div>
+
+            {/* Right Side: Calculator Dashboard */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, delay: 0.2 }}
+              className="relative"
+            >
+              <div className="bg-archive-white/[0.02] border border-archive-white/5 p-12 rounded-2xl backdrop-blur-xl">
+                <div className="flex items-center justify-between mb-16 border-b border-archive-white/5 pb-8">
+                  <span className="text-[10px] font-mono tracking-widest text-archive-white/20 uppercase">Revenue Leakage Calculator v1.0</span>
+                  <div className="flex gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-500/40 animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-archive-white/10" />
+                  </div>
+                </div>
+
+                <div className="space-y-12">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[11px] font-serif italic text-archive-white/40">Active Patients (A)</span>
+                      <span className="text-2xl font-mono text-archive-white">{activePatients.toLocaleString()}</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      name="activePatients"
+                      min="100" 
+                      max="10000" 
+                      step="100"
+                      value={formData.activePatients}
+                      onChange={handleInputChange}
+                      className="w-full accent-orange-500 opacity-50 hover:opacity-100 transition-opacity"
+                    />
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[11px] font-serif italic text-archive-white/40">Annual Attrition (Attr %)</span>
+                      <span className="text-2xl font-mono text-archive-white">{attritionRate}%</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      name="attritionRate"
+                      min="5" 
+                      max="60" 
+                      step="1"
+                      value={formData.attritionRate}
+                      onChange={handleInputChange}
+                      className="w-full accent-orange-500 opacity-50 hover:opacity-100 transition-opacity"
+                    />
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[11px] font-serif italic text-archive-white/40">Lifetime Value (LTV)</span>
+                      <span className="text-2xl font-mono text-archive-white">${ltv.toLocaleString()}</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      name="ltv"
+                      min="100" 
+                      max="5000" 
+                      step="50"
+                      value={formData.ltv}
+                      onChange={handleInputChange}
+                      className="w-full accent-orange-500 opacity-50 hover:opacity-100 transition-opacity"
+                    />
+                  </div>
+
+                  <div className="pt-12 border-t border-archive-white/5 mt-12">
+                    <span className="text-[10px] font-mono tracking-widest text-archive-white/20 uppercase block mb-4">Estimated Annual Recoverable Loss</span>
+                    <div className="text-6xl md:text-8xl font-serif italic text-orange-500 tracking-tighter">
+                      ${recoverableLoss.toLocaleString()}
+                    </div>
+                    <div className="mt-8 flex items-center gap-4 text-[9px] font-mono text-archive-white/20 uppercase tracking-widest">
+                      <span>Formula: A * Attr% * LTV</span>
+                      <div className="h-[1px] flex-grow bg-archive-white/5" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Technical Accents */}
+              <div className="absolute -top-4 -right-4 w-24 h-24 border-t border-r border-orange-500/20 pointer-events-none" />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 border-b border-l border-orange-500/20 pointer-events-none" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+};
+
 const Metrics = () => (
   <Section id="metrics" className="relative overflow-hidden bg-[#0F0F0F]">
     <div className="text-center mb-48">
@@ -406,7 +650,85 @@ const FinalCTA = () => (
   </Section>
 );
 
-const Footer = () => (
+const AdminDashboard = () => {
+  const [audits, setAudits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'revenueAudits'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const auditData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAudits(auditData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'revenueAudits');
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return (
+    <div className="py-24 text-center font-mono text-[10px] uppercase tracking-widest opacity-20">
+      Loading Archive Data...
+    </div>
+  );
+
+  return (
+    <Section id="admin" className="bg-[#0F0F0F] border-t border-archive-white/10">
+      <div className="container mx-auto px-8">
+        <div className="flex items-center justify-between mb-24">
+          <div>
+            <span className="text-[10px] font-sans tracking-[0.4em] text-orange-500 uppercase block mb-4">Admin Access</span>
+            <h2 className="text-4xl md:text-6xl font-serif italic tracking-tighter text-archive-white">Captured Leads.</h2>
+          </div>
+          <div className="text-right">
+            <span className="text-[10px] font-mono tracking-widest text-archive-white/20 uppercase block">Total Entries</span>
+            <span className="text-4xl font-mono text-archive-white">{audits.length}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {audits.map((audit) => (
+            <div key={audit.id} className="group bg-archive-white/[0.02] border border-archive-white/5 p-8 hover:border-orange-500/30 transition-all duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-center">
+                <div className="space-y-1">
+                  <span className="text-[9px] font-mono text-archive-white/20 uppercase tracking-widest">Practice</span>
+                  <p className="font-serif italic text-lg text-archive-white">{audit.practiceName}</p>
+                  <p className="text-[10px] font-sans text-archive-white/40 uppercase tracking-wider">{audit.location || 'No Location'}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-mono text-archive-white/20 uppercase tracking-widest">Contact</span>
+                  <p className="font-serif italic text-lg text-archive-white">{audit.email}</p>
+                  <p className="text-[10px] font-sans text-archive-white/40 uppercase tracking-wider">
+                    {audit.createdAt?.toDate ? new Date(audit.createdAt.toDate()).toLocaleDateString() : 'Recent'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-mono text-archive-white/20 uppercase tracking-widest">Metrics</span>
+                  <p className="text-[11px] font-sans text-archive-white/60 uppercase tracking-wider">
+                    {audit.numProviders} Providers • ${audit.avgTicket} Ticket
+                  </p>
+                  <p className="text-[11px] font-sans text-archive-white/60 uppercase tracking-wider">
+                    {audit.activePatients} Patients • {audit.attritionRate}% Attrition
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[9px] font-mono text-archive-white/20 uppercase tracking-widest block mb-1">Recoverable Loss</span>
+                  <span className="text-3xl font-serif italic text-orange-500">${audit.recoverableLoss?.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Section>
+  );
+};
+
+const Footer = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () => void, onLogout: () => void }) => (
   <footer className="py-32 border-t border-archive-white/5 bg-[#0F0F0F] text-archive-white">
     <div className="container mx-auto px-8">
       <div className="flex flex-col md:flex-row justify-between items-start gap-24 mb-32">
@@ -418,6 +740,29 @@ const Footer = () => (
             L'archivio è un organismo vivente. <br />
             A minimalist revenue infrastructure for modern healthcare practices.
           </p>
+          
+          <div className="mt-12">
+            {!user ? (
+              <button 
+                onClick={onLogin}
+                className="text-[9px] font-bold uppercase tracking-[0.4em] text-archive-white/20 hover:text-orange-500 transition-colors"
+              >
+                Admin Login
+              </button>
+            ) : (
+              <div className="flex items-center gap-4">
+                <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-orange-500">
+                  Logged in as {user.email}
+                </span>
+                <button 
+                  onClick={onLogout}
+                  className="text-[9px] font-bold uppercase tracking-[0.4em] text-archive-white/20 hover:text-white transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-32">
@@ -427,6 +772,7 @@ const Footer = () => (
               <li><a href="#" className="hover:text-archive-white transition-colors">System</a></li>
               <li><a href="#" className="hover:text-archive-white transition-colors">Archive</a></li>
               <li><a href="#" className="hover:text-archive-white transition-colors">Metrics</a></li>
+              <li><a href="#audit" className="hover:text-archive-white transition-colors">Revenue Audit</a></li>
               <li><a href="#booking" className="hover:text-archive-white transition-colors">Booking</a></li>
             </ul>
           </div>
@@ -452,8 +798,34 @@ const Footer = () => (
 
 export default function App() {
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  const isAdmin = user?.email === 'anmolaujla2702@gmail.com';
 
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-archive-white font-sans selection:bg-archive-white selection:text-archive-black">
@@ -508,9 +880,13 @@ export default function App() {
           />
           
           <Metrics />
+          <RevenueAudit />
+          
+          {isAdmin && <AdminDashboard />}
+
           <FinalCTA />
           <Booking />
-          <Footer />
+          <Footer user={user} onLogin={handleLogin} onLogout={handleLogout} />
           
           {/* Smooth Scroll Progress */}
           <motion.div 

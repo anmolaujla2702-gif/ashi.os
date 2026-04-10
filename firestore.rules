@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: revenueAudits
+    // Document ID: auto-generated
+    // Fields:
+    //   - practiceName: string (required)
+    //   - location: string
+    //   - numProviders: number
+    //   - avgTicket: number
+    //   - activePatients: number
+    //   - ltv: number
+    //   - attritionRate: number
+    //   - recoverableLoss: number (required)
+    //   - email: string (required, email format)
+    //   - createdAt: timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.email == "anmolaujla2702@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidAudit(data) {
+      return data.keys().hasAll(['practiceName', 'email', 'recoverableLoss']) &&
+             data.practiceName is string && data.practiceName.size() > 0 && data.practiceName.size() < 200 &&
+             isValidEmail(data.email) &&
+             data.recoverableLoss is number &&
+             (!('location' in data) || (data.location is string && data.location.size() < 200)) &&
+             (!('numProviders' in data) || data.numProviders is number) &&
+             (!('avgTicket' in data) || data.avgTicket is number) &&
+             (!('activePatients' in data) || data.activePatients is number) &&
+             (!('ltv' in data) || data.ltv is number) &&
+             (!('attritionRate' in data) || data.attritionRate is number);
+    }
+
+    match /revenueAudits/{auditId} {
+      // Allow anyone to create an audit (lead capture)
+      allow create: if isValidAudit(request.resource.data);
+      
+      // Only admin can read/list audits
+      allow read, list: if isAdmin();
+      
+      // No updates or deletes allowed for now
+      allow update, delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

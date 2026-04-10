@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "revenueAudits": {
+      "title": "Revenue Audit",
+      "description": "Captured data from the revenue leakage calculator and lead form.",
+      "type": "object",
+      "properties": {
+        "practiceName": { "type": "string", "description": "Name of the medical practice" },
+        "location": { "type": "string", "description": "Practice location" },
+        "numProviders": { "type": "number", "description": "Number of providers" },
+        "avgTicket": { "type": "number", "description": "Average ticket value" },
+        "activePatients": { "type": "number", "description": "Number of active patients" },
+        "ltv": { "type": "number", "description": "Average lifetime value per patient" },
+        "attritionRate": { "type": "number", "description": "Annual attrition rate (percentage)" },
+        "recoverableLoss": { "type": "number", "description": "Calculated annual recoverable loss" },
+        "email": { "type": "string", "format": "email", "description": "User email for detailed audit" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of the audit" }
+      },
+      "required": ["practiceName", "email", "recoverableLoss"]
+    }
+  },
+  "firestore": {
+    "/revenueAudits/{auditId}": {
+      "schema": "revenueAudits",
+      "description": "Collection of revenue audits submitted by users."
+    }
+  }
+}

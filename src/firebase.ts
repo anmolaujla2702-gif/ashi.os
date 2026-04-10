@@ -1,7 +1,23 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
+import firebaseConfigJson from '../firebase-applet-config.json';
+
+// Use environment variables if available, otherwise fallback to the config file
+const firebaseConfig = {
+  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY.length > 5) ? import.meta.env.VITE_FIREBASE_API_KEY : firebaseConfigJson.apiKey,
+  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN && import.meta.env.VITE_FIREBASE_AUTH_DOMAIN.length > 5) ? import.meta.env.VITE_FIREBASE_AUTH_DOMAIN : firebaseConfigJson.authDomain,
+  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID && import.meta.env.VITE_FIREBASE_PROJECT_ID.length > 5) ? import.meta.env.VITE_FIREBASE_PROJECT_ID : firebaseConfigJson.projectId,
+  appId: (import.meta.env.VITE_FIREBASE_APP_ID && import.meta.env.VITE_FIREBASE_APP_ID.length > 5) ? import.meta.env.VITE_FIREBASE_APP_ID : firebaseConfigJson.appId,
+  firestoreDatabaseId: (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID && import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID.length > 5) ? import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID : firebaseConfigJson.firestoreDatabaseId,
+};
+
+console.log("Firebase initialized with Project ID:", firebaseConfig.projectId);
+
+// Validate that essential config is present
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error("Firebase configuration is missing.");
+}
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);

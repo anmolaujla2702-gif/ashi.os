@@ -39,8 +39,14 @@ service cloud.firestore {
         email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
 
+    function hasOnlyAllowedFields(data, allowedFields) {
+      return data.keys().hasOnly(allowedFields);
+    }
+
     function isValidAudit(data) {
+      let allowedFields = ['practiceName', 'location', 'numProviders', 'avgTicket', 'activePatients', 'ltv', 'attritionRate', 'recoverableLoss', 'email', 'createdAt'];
       return data.keys().hasAll(['practiceName', 'email', 'recoverableLoss']) &&
+             hasOnlyAllowedFields(data, allowedFields) &&
              data.practiceName is string && data.practiceName.size() > 0 && data.practiceName.size() < 200 &&
              isValidEmail(data.email) &&
              data.recoverableLoss is number &&
@@ -49,7 +55,8 @@ service cloud.firestore {
              (!('avgTicket' in data) || data.avgTicket is number) &&
              (!('activePatients' in data) || data.activePatients is number) &&
              (!('ltv' in data) || data.ltv is number) &&
-             (!('attritionRate' in data) || data.attritionRate is number);
+             (!('attritionRate' in data) || data.attritionRate is number) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     match /revenueAudits/{auditId} {

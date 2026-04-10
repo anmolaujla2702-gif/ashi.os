@@ -162,7 +162,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-const Navbar = () => {
+const Navbar = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () => void, onLogout: () => void }) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] py-12 px-12 flex items-center justify-between pointer-events-none">
       <div className="text-[10px] font-serif tracking-[1em] text-archive-white uppercase opacity-40">
@@ -190,6 +190,21 @@ const Navbar = () => {
         >
           Audit
         </a>
+        {!user ? (
+          <button 
+            onClick={onLogin}
+            className="text-[8px] font-medium uppercase tracking-[0.6em] text-orange-500/50 hover:text-orange-500 transition-all duration-1000"
+          >
+            Login
+          </button>
+        ) : (
+          <button 
+            onClick={onLogout}
+            className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
+          >
+            Logout
+          </button>
+        )}
         <a 
           href="mailto:ashypyi@gmail.com" 
           className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
@@ -811,9 +826,18 @@ export default function App() {
 
   const handleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login failed", error);
+      console.log("Initiating Google Sign-In...");
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Login successful:", result.user.email);
+    } catch (error: any) {
+      console.error("Login failed detail:", error);
+      if (error.code === 'auth/popup-blocked') {
+        alert("The login popup was blocked by your browser. Please allow popups or try opening the app in a new tab using the icon in the top right.");
+      } else if (error.code === 'auth/unauthorized-domain') {
+        alert("This domain is not authorized for Firebase Auth. Please ensure the preview URL is added to your Firebase Authorized Domains.");
+      } else {
+        alert(`Login failed: ${error.message}`);
+      }
     }
   };
 
@@ -839,7 +863,7 @@ export default function App() {
           animate={{ opacity: 1 }}
           transition={{ duration: 2 }}
         >
-          <Navbar />
+          <Navbar user={user} onLogin={handleLogin} onLogout={handleLogout} />
           <Hero />
           
           <ArchiveSpread 

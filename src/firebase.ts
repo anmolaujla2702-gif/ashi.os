@@ -1,23 +1,22 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfigJson from '../firebase-applet-config.json';
 
-// Use environment variables if available, otherwise fallback to the config file
+/**
+ * DEEP FIX: We no longer import the JSON file. 
+ * Instead, we use environment variables with hardcoded fallbacks.
+ * This ensures the app works even if you delete the config file.
+ * NOTE: Firebase API keys are public by design; security is handled by Firestore Rules.
+ */
 const firebaseConfig = {
-  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY.length > 5) ? import.meta.env.VITE_FIREBASE_API_KEY : firebaseConfigJson.apiKey,
-  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN && import.meta.env.VITE_FIREBASE_AUTH_DOMAIN.length > 5) ? import.meta.env.VITE_FIREBASE_AUTH_DOMAIN : firebaseConfigJson.authDomain,
-  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID && import.meta.env.VITE_FIREBASE_PROJECT_ID.length > 5) ? import.meta.env.VITE_FIREBASE_PROJECT_ID : firebaseConfigJson.projectId,
-  appId: (import.meta.env.VITE_FIREBASE_APP_ID && import.meta.env.VITE_FIREBASE_APP_ID.length > 5) ? import.meta.env.VITE_FIREBASE_APP_ID : firebaseConfigJson.appId,
-  firestoreDatabaseId: (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID && import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID.length > 5) ? import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID : firebaseConfigJson.firestoreDatabaseId,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAomhx9SHiTFvIXVeIEJl2h_msgOMvh7dY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "gen-lang-client-0436349434.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "gen-lang-client-0436349434",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:329032744097:web:ef832b232d204de94dc4e0",
+  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || "ai-studio-9231e37e-c064-4393-b0ae-ed39120f1236",
 };
 
 console.log("Firebase initialized with Project ID:", firebaseConfig.projectId);
-
-// Validate that essential config is present
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error("Firebase configuration is missing.");
-}
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);

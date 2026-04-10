@@ -8,7 +8,8 @@ import {
   ArrowRight, 
   Menu,
   X,
-  ArrowUpRight
+  ArrowUpRight,
+  Flame
 } from "lucide-react";
 import { useState, useEffect, useRef, ReactNode } from "react";
 
@@ -33,6 +34,90 @@ const staggerContainer = {
 };
 
 // --- Components ---
+
+const FieryButton = ({ onClick }: { onClick: () => void }) => {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ scale: 1.15, rotate: [-2, 2, -2] }}
+      whileTap={{ scale: 0.95 }}
+      className="relative group mx-auto block"
+    >
+      {/* Extreme Atmospheric Glow */}
+      <div className="absolute -inset-16 bg-orange-600/20 rounded-full blur-[100px] group-hover:bg-orange-600/40 transition-colors duration-700" />
+      <div className="absolute -inset-12 bg-red-600/20 rounded-full blur-[80px] group-hover:bg-red-600/40 transition-colors duration-700 delay-100" />
+      
+      {/* Intense Outer Glow Layers */}
+      <div className="absolute -inset-8 bg-gradient-to-r from-orange-600 via-red-600 to-yellow-500 rounded-full blur-3xl opacity-60 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+      <div className="absolute -inset-4 bg-gradient-to-t from-red-600 via-orange-500 to-transparent rounded-full blur-xl opacity-40 group-hover:opacity-80 transition-opacity duration-300" />
+      
+      {/* The Button */}
+      <div className="relative bg-black border-2 border-orange-500/50 px-16 py-8 rounded-full overflow-hidden shadow-[0_0_60px_rgba(234,88,12,0.4)]">
+        {/* Lava Pulse Effect */}
+        <motion.div 
+          animate={{ 
+            opacity: [0.2, 0.5, 0.2],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-gradient-to-t from-orange-900/60 via-red-900/20 to-transparent"
+        />
+
+        {/* Dynamic Fire Particles - Increased count and variety */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div 
+            key={i}
+            animate={{ 
+              y: [0, -150 - Math.random() * 100],
+              x: [0, (Math.random() - 0.5) * 60],
+              opacity: [0, 1, 0],
+              scale: [0.5, 2.5, 0.5],
+              rotate: [0, Math.random() * 360]
+            }}
+            transition={{ 
+              duration: 1 + Math.random() * 1.5, 
+              repeat: Infinity, 
+              delay: Math.random() * 2,
+              ease: "easeOut" 
+            }}
+            className={`absolute bottom-0 blur-lg rounded-full ${
+              i % 4 === 0 ? 'bg-orange-500 w-6 h-6' : 
+              i % 4 === 1 ? 'bg-red-600 w-4 h-4' : 
+              i % 4 === 2 ? 'bg-yellow-400 w-3 h-3' :
+              'bg-white w-2 h-2' // Sparks
+            }`}
+            style={{ left: `${10 + Math.random() * 80}%` }}
+          />
+        ))}
+
+        {/* Heat Haze Distortion (Simulated) */}
+        <motion.div 
+          animate={{ 
+            skewX: [-1, 1, -1],
+            skewY: [-0.5, 0.5, -0.5]
+          }}
+          transition={{ duration: 0.1, repeat: Infinity }}
+          className="absolute inset-0 pointer-events-none opacity-20 bg-white/5"
+        />
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <span className="text-white font-black italic uppercase tracking-[0.5em] text-xl drop-shadow-[0_2px_15px_rgba(0,0,0,1)]">
+            IGNITE GROWTH
+          </span>
+          <motion.div
+            animate={{ 
+              scale: [1, 1.4, 1],
+              filter: ["brightness(1) drop-shadow(0 0 0px orange)", "brightness(1.8) drop-shadow(0 0 15px orange)", "brightness(1) drop-shadow(0 0 0px orange)"]
+            }}
+            transition={{ duration: 0.6, repeat: Infinity }}
+          >
+            <Flame className="text-orange-500 group-hover:text-red-500 transition-colors duration-300" size={36} fill="currentColor" />
+          </motion.div>
+        </div>
+      </div>
+    </motion.button>
+  );
+};
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [progress, setProgress] = useState(0);
@@ -90,6 +175,12 @@ const Navbar = () => {
             {item}
           </a>
         ))}
+        <a 
+          href="#booking" 
+          className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
+        >
+          Book
+        </a>
         <a 
           href="mailto:ashypyi@gmail.com" 
           className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
@@ -214,6 +305,56 @@ const ArchiveSpread = ({ title, subtitle, description, id = "", color = "from-[#
   );
 };
 
+const Booking = () => {
+  useEffect(() => {
+    // Load Calendly Script
+    const script = document.createElement("script");
+    script.src = "https://assets.calendly.com/assets/external/widget.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Load Calendly CSS
+    const link = document.createElement("link");
+    link.href = "https://assets.calendly.com/assets/external/widget.css";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+
+    return () => {
+      document.body.removeChild(script);
+      document.head.removeChild(link);
+    };
+  }, []);
+
+  const handleBook = () => {
+    if ((window as any).Calendly) {
+      (window as any).Calendly.initPopupWidget({
+        url: "https://calendly.com/anmolaujla2702/new-meeting-1"
+      });
+    }
+  };
+
+  return (
+    <Section id="booking" className="bg-[#0F0F0F] border-t border-archive-white/5 flex flex-col items-center">
+      <div className="text-center mb-32">
+        <span className="text-[10px] font-sans tracking-[0.4em] text-archive-white/30 uppercase block mb-10">04 / The Connection</span>
+        <h2 className="text-5xl md:text-[100px] font-serif italic tracking-tighter text-archive-white leading-none">
+          Secure your <span className="not-italic opacity-10">Slot.</span>
+        </h2>
+      </div>
+      
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, ease: [0.215, 0.61, 0.355, 1] }}
+        className="py-12"
+      >
+        <FieryButton onClick={handleBook} />
+      </motion.div>
+    </Section>
+  );
+};
+
 const Metrics = () => (
   <Section id="metrics" className="relative overflow-hidden bg-[#0F0F0F]">
     <div className="text-center mb-48">
@@ -286,6 +427,7 @@ const Footer = () => (
               <li><a href="#" className="hover:text-archive-white transition-colors">System</a></li>
               <li><a href="#" className="hover:text-archive-white transition-colors">Archive</a></li>
               <li><a href="#" className="hover:text-archive-white transition-colors">Metrics</a></li>
+              <li><a href="#booking" className="hover:text-archive-white transition-colors">Booking</a></li>
             </ul>
           </div>
           <div>
@@ -367,6 +509,7 @@ export default function App() {
           
           <Metrics />
           <FinalCTA />
+          <Booking />
           <Footer />
           
           {/* Smooth Scroll Progress */}

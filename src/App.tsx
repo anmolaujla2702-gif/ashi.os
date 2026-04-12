@@ -13,7 +13,12 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect, useRef, ReactNode } from "react";
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  User,
+  signInWithRedirect,
+  getRedirectResult
+} from 'firebase/auth';
 import { db, auth, googleProvider, signInWithPopup, handleFirestoreError, OperationType } from './firebase';
 
 // --- Constants ---
@@ -169,27 +174,15 @@ const Navbar = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () =>
         ASHI
       </div>
       <div className="hidden md:flex items-center gap-16 pointer-events-auto">
-        {["System", "Archive", "Metrics"].map((item) => (
+        {["System", "Case-Study", "Audit", "Booking"].map((item) => (
           <a 
             key={item} 
             href={`#${item.toLowerCase()}`} 
             className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
           >
-            {item}
+            {item.replace('-', ' ')}
           </a>
         ))}
-        <a 
-          href="#booking" 
-          className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
-        >
-          Book
-        </a>
-        <a 
-          href="#audit" 
-          className="text-[8px] font-medium uppercase tracking-[0.6em] text-archive-white/20 hover:text-archive-white transition-all duration-1000"
-        >
-          Audit
-        </a>
         {!user ? (
           <button 
             onClick={onLogin}
@@ -375,6 +368,183 @@ const Booking = () => {
       >
         <FieryButton onClick={handleBook} />
       </motion.div>
+    </Section>
+  );
+};
+
+const CaseStudy = () => {
+  return (
+    <Section id="case-study" className="bg-[#0F0F0F] border-t border-archive-white/5 py-32">
+      <div className="container mx-auto px-8">
+        <div className="max-w-6xl mx-auto">
+          {/* 1. Hero Section (Hook) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2 }}
+            className="mb-32 text-center"
+          >
+            <span className="text-[10px] font-sans tracking-[0.4em] text-orange-500 uppercase block mb-10">Case Study / 01</span>
+            <h2 className="text-5xl md:text-8xl font-serif italic tracking-tighter text-archive-white leading-tight mb-12 max-w-4xl mx-auto">
+              How We Increased Patient Retention by <span className="text-orange-500">38%</span> for a Local Clinic
+            </h2>
+            <p className="text-xl md:text-2xl text-archive-white/40 max-w-2xl mx-auto mb-16 font-medium leading-relaxed">
+              Turning existing patients into consistent monthly revenue—without spending more on ads.
+            </p>
+            <motion.a 
+              href="#booking"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-block bg-archive-white text-archive-black px-12 py-6 rounded-full text-xs font-bold uppercase tracking-[0.3em] hover:bg-orange-500 hover:text-white transition-all duration-500"
+            >
+              Book a Free Strategy Call
+            </motion.a>
+          </motion.div>
+
+          {/* 2. Snapshot (Quick Proof Block) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-48">
+            {[
+              { label: "Patient Retention", value: "+38%", icon: "📈" },
+              { label: "Repeat Visits", value: "+52%", icon: "🔁" },
+              { label: "Revenue Growth", value: "+31%", icon: "💰" },
+              { label: "Staff Workload", value: "-40%", icon: "⚡" },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.8 }}
+                className="bg-archive-white/5 border border-archive-white/10 p-10 rounded-3xl text-center group hover:border-orange-500/50 transition-colors"
+              >
+                <div className="text-4xl mb-6">{stat.icon}</div>
+                <div className="text-4xl md:text-5xl font-serif italic text-archive-white mb-2">{stat.value}</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-archive-white/30">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 3. The Problem & 4. The Strategy */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 mb-48">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2 }}
+            >
+              <h3 className="text-3xl font-serif italic text-archive-white mb-12">The Challenge</h3>
+              <p className="text-lg text-archive-white/60 mb-12 leading-relaxed">
+                The clinic was generating a steady flow of new patients—but most of them never returned. Revenue was inconsistent and heavily dependent on new patient acquisition.
+              </p>
+              <ul className="space-y-6">
+                {[
+                  "No structured follow-ups",
+                  "Missed rebooking opportunities",
+                  "Zero reactivation of old patients",
+                  "Staff overwhelmed with manual tasks"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-6 text-archive-white/40 font-medium">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2 }}
+            >
+              <h3 className="text-3xl font-serif italic text-archive-white mb-12">What We Implemented</h3>
+              <div className="grid grid-cols-1 gap-8">
+                {[
+                  { title: "Automated Follow-Ups", desc: "WhatsApp & SMS reminders for post-treatment care and missed appointments." },
+                  { title: "Patient Segmentation", desc: "Categorized patients into New, Active, Inactive, and High-value for personalized comms." },
+                  { title: "Reactivation Campaigns", desc: "Re-engaged old patients with limited-time offers and easy booking links." },
+                  { title: "Smart Booking System", desc: "Simplified scheduling with one-click booking to reduce friction." }
+                ].map((item, i) => (
+                  <div key={i} className="bg-archive-white/5 p-8 rounded-2xl border-l-2 border-orange-500">
+                    <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-archive-white mb-2">{item.title}</h4>
+                    <p className="text-sm text-archive-white/40 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* 5. The Results */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.5 }}
+            className="bg-archive-white text-archive-black p-16 md:p-24 rounded-[40px] mb-48"
+          >
+            <h3 className="text-4xl font-serif italic mb-16 text-center">The Outcome (Within 90 Days)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              <div className="space-y-8">
+                <div className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-30">Before</div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end border-b border-black/10 pb-4">
+                    <span className="font-medium">Retention</span>
+                    <span className="text-3xl font-serif italic">27%</span>
+                  </div>
+                  <p className="text-sm opacity-60 italic">Manual follow-ups & lost patients</p>
+                </div>
+              </div>
+              <div className="space-y-8">
+                <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-orange-600">After</div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end border-b border-orange-500 pb-4">
+                    <span className="font-bold">Retention</span>
+                    <span className="text-5xl font-serif italic text-orange-600">65%</span>
+                  </div>
+                  <p className="text-sm font-bold text-orange-600 italic">Fully automated system & consistent repeat visits</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 6. Key Insight & 7. Testimonial */}
+          <div className="text-center mb-48">
+            <h3 className="text-3xl font-serif italic text-archive-white mb-8">What Most Clinics Miss</h3>
+            <p className="text-xl text-archive-white/60 max-w-3xl mx-auto leading-relaxed mb-16">
+              Most clinics focus only on getting new patients. But the real growth comes from <span className="text-archive-white font-bold underline decoration-orange-500 underline-offset-8">retaining and reactivating existing ones</span>. We simply built a system that makes that happen automatically.
+            </p>
+            <div className="max-w-2xl mx-auto">
+              <div className="text-5xl text-orange-500 mb-8">“</div>
+              <blockquote className="text-2xl md:text-3xl font-serif italic text-archive-white leading-relaxed mb-8">
+                We didn’t realize how many patients we were losing. Now they come back automatically—and our schedule stays full.
+              </blockquote>
+              <cite className="text-[10px] font-bold uppercase tracking-[0.4em] text-archive-white/30">— Clinic Director</cite>
+            </div>
+          </div>
+
+          {/* 8. CTA Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-orange-600 to-red-700 p-16 md:p-32 rounded-[60px] text-center text-white"
+          >
+            <h3 className="text-4xl md:text-7xl font-serif italic tracking-tighter mb-8">Want Similar Results for Your Clinic?</h3>
+            <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto mb-16 font-medium">
+              We’ll analyze your current system and show you exactly where you’re losing patients—and how to fix it.
+            </p>
+            <motion.a 
+              href="#audit"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-block bg-white text-archive-black px-16 py-8 rounded-full text-sm font-bold uppercase tracking-[0.4em] hover:bg-black hover:text-white transition-all duration-500"
+            >
+              Book Your Free Audit
+            </motion.a>
+          </motion.div>
+        </div>
+      </div>
     </Section>
   );
 };
@@ -784,9 +954,8 @@ const Footer = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () =>
           <div>
             <h4 className="text-[10px] font-bold uppercase tracking-[0.4em] text-archive-white/20 mb-10">Navigation</h4>
             <ul className="space-y-6 text-[10px] font-medium uppercase tracking-[0.3em] text-archive-white/40">
-              <li><a href="#" className="hover:text-archive-white transition-colors">System</a></li>
-              <li><a href="#" className="hover:text-archive-white transition-colors">Archive</a></li>
-              <li><a href="#" className="hover:text-archive-white transition-colors">Metrics</a></li>
+              <li><a href="#system" className="hover:text-archive-white transition-colors">System</a></li>
+              <li><a href="#case-study" className="hover:text-archive-white transition-colors">Case Study</a></li>
               <li><a href="#audit" className="hover:text-archive-white transition-colors">Revenue Audit</a></li>
               <li><a href="#booking" className="hover:text-archive-white transition-colors">Booking</a></li>
             </ul>
@@ -818,6 +987,11 @@ export default function App() {
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
 
   useEffect(() => {
+    // Handle redirect result
+    getRedirectResult(auth).catch((error) => {
+      console.error("Redirect login failed:", error);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
@@ -827,14 +1001,23 @@ export default function App() {
   const handleLogin = async () => {
     try {
       console.log("Initiating Google Sign-In...");
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("Login successful:", result.user.email);
+      // Try popup first
+      await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
       console.error("Login failed detail:", error);
-      if (error.code === 'auth/popup-blocked') {
-        alert("The login popup was blocked by your browser. Please allow popups or try opening the app in a new tab using the icon in the top right.");
+      
+      // If popup is blocked or closed, or if we are on a mobile device, try redirect
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || isMobile) {
+        console.log("Switching to Redirect login...");
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError: any) {
+          alert(`Login failed: ${redirectError.message}`);
+        }
       } else if (error.code === 'auth/unauthorized-domain') {
-        alert("This domain is not authorized for Firebase Auth. Please ensure the preview URL is added to your Firebase Authorized Domains.");
+        alert("This domain (ashi-os.vercel.app) is not authorized in Firebase. Please add it to 'Authorized Domains' in your Firebase Console > Authentication > Settings.");
       } else {
         alert(`Login failed: ${error.message}`);
       }
@@ -865,6 +1048,7 @@ export default function App() {
         >
           <Navbar user={user} onLogin={handleLogin} onLogout={handleLogout} />
           <Hero />
+          <RevenueAudit />
           
           <ArchiveSpread 
             id="system"
@@ -903,8 +1087,8 @@ export default function App() {
             accentColor="bg-white/20"
           />
           
+          <CaseStudy />
           <Metrics />
-          <RevenueAudit />
           
           {isAdmin && <AdminDashboard />}
 

@@ -245,6 +245,33 @@ const Hero = () => {
   );
 };
 
+const TrustBar = () => {
+  return (
+    <div className="bg-archive-white/5 border-y border-archive-white/5 py-12">
+      <div className="container mx-auto px-8">
+        <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">H</div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em]">HIPAA Compliant</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">B</div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em]">BAA Available</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">S</div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Secure Hosting</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">L</div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Legal & SLAs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ArchiveSpread = ({ title, subtitle, description, id = "", color = "from-[#0F0F0F] to-[#1A1A1A]", textColor = "text-archive-white", accentColor = "bg-archive-white/10" }: any) => {
   return (
     <section id={id} className={`relative min-h-screen flex items-center justify-center overflow-hidden border-b border-archive-white/5 bg-gradient-to-br ${color} ${textColor}`}>
@@ -913,7 +940,7 @@ const AdminDashboard = () => {
   );
 };
 
-const Footer = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () => void, onLogout: () => void }) => (
+const Footer = ({ user, onLogin, onLogout, onPrivacyClick }: { user: User | null, onLogin: () => void, onLogout: () => void, onPrivacyClick: () => void }) => (
   <footer className="py-32 border-t border-archive-white/5 bg-[#0F0F0F] text-archive-white">
     <div className="container mx-auto px-8">
       <div className="flex flex-col md:flex-row justify-between items-start gap-24 mb-32">
@@ -972,13 +999,141 @@ const Footer = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () =>
       <div className="flex flex-col md:flex-row items-center justify-between gap-12 pt-16 border-t border-archive-white/5 text-[10px] font-bold uppercase tracking-[0.4em] text-archive-white/10">
         <p>© 2026 ASHI ARCHIVE. ALL RIGHTS RESERVED.</p>
         <div className="flex gap-16">
-          <a href="#" className="hover:text-archive-white transition-colors">Privacy Policy</a>
+          <button onClick={onPrivacyClick} className="hover:text-archive-white transition-colors">Privacy Policy</button>
           <a href="#" className="hover:text-archive-white transition-colors">Terms of Service</a>
         </div>
       </div>
     </div>
   </footer>
 );
+
+const PrivacyModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-8">
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        onClick={onClose}
+        className="absolute inset-0 bg-black/95 backdrop-blur-2xl" 
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative bg-[#0F0F0F] border border-archive-white/10 w-full max-w-5xl max-h-[85vh] overflow-y-auto rounded-[40px] p-12 md:p-24 shadow-2xl custom-scrollbar"
+      >
+        <button onClick={onClose} className="absolute top-12 right-12 text-archive-white/40 hover:text-white transition-colors">
+          <X size={32} />
+        </button>
+        <div className="text-archive-white/60 font-sans text-sm leading-relaxed space-y-8">
+          <h1 className="text-4xl font-serif italic text-archive-white mb-12">Privacy Policy</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-40">Last updated April 12, 2026</p>
+          
+          <section className="space-y-4">
+            <p>This Privacy Notice for ASHI ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you visit our website at <a href="https://ashi-os.vercel.app/" className="text-orange-500">https://ashi-os.vercel.app/</a> or engage with us in other related ways.</p>
+            <p><strong>Questions or concerns?</strong> Reading this Privacy Notice will help you understand your privacy rights and choices. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at <a href="mailto:ashypyi@gmail.com" className="text-orange-500">ashypyi@gmail.com</a>.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">1. WHAT INFORMATION DO WE COLLECT?</h2>
+            <p>We collect personal information that you voluntarily provide to us when you express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.</p>
+            <p>The personal information we collect may include: names, email addresses, phone numbers, business/company name, and usage data / IP address.</p>
+            <p><strong>Social Media Login Data:</strong> We may provide you with the option to register with us using your existing social media account details, like your Facebook, X, or other social media account.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">2. HOW DO WE PROCESS YOUR INFORMATION?</h2>
+            <p>We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We may also process your information for other purposes with your consent.</p>
+            <ul className="list-disc pl-8 space-y-2">
+              <li>To provide our services: communicate with them with the data and provide services</li>
+              <li>To respond to inquiries</li>
+              <li>To fulfill contractual obligations</li>
+              <li>To improve our services</li>
+            </ul>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">3. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</h2>
+            <p>We may share information in specific situations described in this section and/or with the following third parties: Business Transfers (merger, sale of company assets, financing, or acquisition).</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">4. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</h2>
+            <p>We may use cookies and similar tracking technologies (like web beacons and pixels) to gather information when you interact with our Services. Some online tracking technologies help us maintain the security of our Services, prevent crashes, fix bugs, save your preferences, and assist with basic site functions.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">5. HOW DO WE HANDLE YOUR SOCIAL LOGINS?</h2>
+            <p>If you choose to register or log in to our Services using a social media account, we may have access to certain information about you (name, email, profile picture, etc.). We recommend that you review their privacy notice to understand how they collect, use, and share your personal information.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">6. HOW LONG DO WE KEEP YOUR INFORMATION?</h2>
+            <p>We will only keep your personal information for as long as it is necessary for the purposes set out in this Privacy Notice, unless a longer retention period is required or permitted by law.</p>
+            <p>For client business data (contacts, emails): as long as the business relationship is active, plus 12 months after contract termination. For patient data processed on behalf of clients: only for the duration of the service contract. All patient data is deleted or returned within 30 days of contract termination, per our BAA obligations.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">7. HOW DO WE KEEP YOUR INFORMATION SAFE?</h2>
+            <p>We have implemented appropriate and reasonable technical and organizational security measures designed to protect the security of any personal information we process. However, no electronic transmission over the Internet or information storage technology can be guaranteed to be 100% secure.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">8. DO WE COLLECT INFORMATION FROM MINORS?</h2>
+            <p>We do not knowingly collect, solicit data from, or market to children under 18 years of age. By using the Services, you represent that you are at least 18.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">9. WHAT ARE YOUR PRIVACY RIGHTS?</h2>
+            <p>You may review, change, or terminate your account at any time, depending on your country, province, or state of residence. You have the right to withdraw your consent at any time.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">10. CONTROLS FOR DO-NOT-TRACK FEATURES</h2>
+            <p>Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track ("DNT") feature. We do not currently respond to DNT browser signals.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">11. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</h2>
+            <p>If you are a resident of California, Colorado, Connecticut, Delaware, Florida, Indiana, Iowa, Kentucky, Maryland, Minnesota, Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah, or Virginia, you may have specific rights regarding access, correction, and deletion of your personal data.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">12. CLIENT PATIENT DATABASES</h2>
+            <p className="bg-orange-500/10 border-l-2 border-orange-500 p-8 text-archive-white italic">
+              This data is processed solely on behalf of our healthcare provider clients under a signed Business Associate Agreement (BAA) in accordance with HIPAA regulations.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">13. DO WE MAKE UPDATES TO THIS NOTICE?</h2>
+            <p>Yes, we will update this notice as necessary to stay compliant with relevant laws. The updated version will be indicated by an updated "Revised" date.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">14. HOW CAN YOU CONTACT US?</h2>
+            <p>If you have questions or comments about this notice, you may email us at <a href="mailto:ashypyi@gmail.com" className="text-orange-500">ashypyi@gmail.com</a> or contact us by post at:</p>
+            <p className="opacity-60">
+              ASHI <br />
+              kothe akalgarh bhikhiroad dhanaula <br />
+              barnala, Punjab 148105 <br />
+              India
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif italic text-archive-white pt-8">15. HOW CAN YOU REVIEW, UPDATE, OR DELETE YOUR DATA?</h2>
+            <p>Based on the applicable laws of your country or state of residence, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information.</p>
+          </section>
+          
+          <div className="pt-16 opacity-20 text-[10px] uppercase tracking-widest">
+            PracticeOS Infrastructure Archive v2.6
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -1034,6 +1189,8 @@ export default function App() {
 
   const isAdmin = user?.email === 'anmolaujla2702@gmail.com';
 
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-archive-white font-sans selection:bg-archive-white selection:text-archive-black">
       <AnimatePresence>
@@ -1086,6 +1243,42 @@ export default function App() {
             textColor="text-archive-white"
             accentColor="bg-white/20"
           />
+
+          {/* PracticeOS Narratives Section */}
+          <Section id="narratives" className="bg-[#0F0F0F] border-t border-archive-white/5">
+            <div className="max-w-4xl mx-auto text-center mb-32">
+              <span className="text-[10px] font-sans tracking-[0.4em] text-orange-500 uppercase block mb-10">The Evolution</span>
+              <h2 className="text-4xl md:text-7xl font-serif italic tracking-tighter text-archive-white leading-tight mb-12">
+                PracticeOS — Your patient revenue, running on autopilot.
+              </h2>
+              <p className="text-xl text-archive-white/40 font-medium leading-relaxed">
+                We are your embedded revenue team, not another agency.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              {[
+                { title: "Infrastructure not campaigns", desc: "We build systems that convert and retain — we measure dollars recovered, not impressions." },
+                { title: "Embedded team", desc: "White‑labeled under your brand — no extra staff required." },
+                { title: "Data-first outcomes", desc: "30‑day audit and a Month‑1 playbook with measurable KPIs." },
+                { title: "Compliance and security", desc: "HIPAA-compliant; BAA available." }
+              ].map((pillar, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-12 bg-archive-white/5 rounded-[40px] border border-archive-white/10 hover:border-orange-500/30 transition-colors group"
+                >
+                  <h3 className="text-2xl font-serif italic mb-6 text-archive-white group-hover:text-orange-500 transition-colors">{pillar.title}</h3>
+                  <p className="text-archive-white/40 leading-relaxed">{pillar.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </Section>
+
+          <TrustBar />
           
           <CaseStudy />
           <Metrics />
@@ -1094,8 +1287,10 @@ export default function App() {
 
           <FinalCTA />
           <Booking />
-          <Footer user={user} onLogin={handleLogin} onLogout={handleLogout} />
+          <Footer user={user} onLogin={handleLogin} onLogout={handleLogout} onPrivacyClick={() => setIsPrivacyOpen(true)} />
           
+          <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+
           {/* Smooth Scroll Progress */}
           <motion.div 
             className="fixed top-0 left-0 right-0 h-[1px] bg-archive-white z-[100] origin-left"

@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   ArrowUpRight,
-  Flame
+  Flame,
+  Calendar
 } from "lucide-react";
 import React, { useState, useEffect, useRef, ReactNode } from "react";
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, onSnapshot } from 'firebase/firestore';
@@ -350,25 +351,6 @@ const ArchiveSpread = ({ title, subtitle, description, id = "", color = "from-[#
 };
 
 const Booking = () => {
-  useEffect(() => {
-    // Load Calendly Script
-    const script = document.createElement("script");
-    script.src = "https://assets.calendly.com/assets/external/widget.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    // Load Calendly CSS
-    const link = document.createElement("link");
-    link.href = "https://assets.calendly.com/assets/external/widget.css";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-
-    return () => {
-      document.body.removeChild(script);
-      document.head.removeChild(link);
-    };
-  }, []);
-
   const handleBook = () => {
     if ((window as any).Calendly) {
       (window as any).Calendly.initPopupWidget({
@@ -1135,6 +1117,36 @@ const PrivacyModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
   );
 };
 
+const FloatingCTA = () => {
+  const handleBook = () => {
+    if ((window as any).Calendly) {
+      (window as any).Calendly.initPopupWidget({
+        url: "https://calendly.com/anmolaujla2702/new-meeting-1"
+      });
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8, y: 100 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay: 2, duration: 1, ease: "circOut" }}
+      className="fixed bottom-8 right-8 md:bottom-12 md:right-12 z-[150]"
+    >
+      <motion.button
+        onClick={handleBook}
+        whileHover={{ scale: 1.05, y: -5 }}
+        whileTap={{ scale: 0.95 }}
+        className="group relative flex items-center gap-4 md:gap-6 bg-orange-500 text-white px-8 py-4 md:px-10 md:py-6 rounded-full shadow-[0_20px_50px_rgba(249,115,22,0.3)] hover:shadow-[0_20px_60px_rgba(249,115,22,0.5)] transition-all duration-500 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+        <Calendar className="w-5 h-5 md:w-6 md:h-6" />
+        <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.4em]">Book Strategy Call</span>
+      </motion.button>
+    </motion.div>
+  );
+};
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -1142,6 +1154,18 @@ export default function App() {
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
 
   useEffect(() => {
+    // Load Calendly Script
+    const script = document.createElement("script");
+    script.src = "https://assets.calendly.com/assets/external/widget.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Load Calendly CSS
+    const link = document.createElement("link");
+    link.href = "https://assets.calendly.com/assets/external/widget.css";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+
     // Handle redirect result
     getRedirectResult(auth).catch((error) => {
       console.error("Redirect login failed:", error);
@@ -1149,8 +1173,14 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      if (document.body.contains(script)) document.body.removeChild(script);
+      if (document.head.contains(link)) document.head.removeChild(link);
+    };
   }, []);
 
   const handleLogin = async () => {
@@ -1290,6 +1320,7 @@ export default function App() {
           <Footer user={user} onLogin={handleLogin} onLogout={handleLogout} onPrivacyClick={() => setIsPrivacyOpen(true)} />
           
           <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+          <FloatingCTA />
 
           {/* Smooth Scroll Progress */}
           <motion.div 
